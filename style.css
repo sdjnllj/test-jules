@@ -1,1 +1,102 @@
-/* Styles for the SVG Clock */
+/* Basic body styling (Light Mode by default) */
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#darkModeToggle {
+    padding: 8px 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #fff;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+#clock-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* SVG Clock Elements - Light Mode are set via JavaScript attributes directly */
+/* See clock.js for fill, stroke, etc. on SVG elements */
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #333;
+    color: #f0f0f0;
+}
+
+body.dark-mode #darkModeToggle {
+    background-color: #555;
+    color: #f0f0f0;
+    border-color: #888;
+}
+
+/*
+  Styling SVG elements like circles, lines, and text for dark mode
+  is primarily handled by JavaScript in this project.
+  The clock.js script will dynamically update 'fill' and 'stroke'
+  attributes of SVG elements when dark mode is toggled.
+
+  The CSS below shows how one *could* style SVG elements IF they were
+  using classes and if their presentation attributes were not already
+  set directly in the JS. However, since JS sets these, JS needs to
+  update them for theme changes.
+*/
+
+/* Example if clock face circle had class="clock-face" AND no fill/stroke attributes in JS */
+/*
+body.dark-mode .clock-face {
+    fill: #404040;
+    stroke: #c0c0c0;
+}
+*/
+
+/* Example for ticks if they had class="tick" */
+/*
+body.dark-mode .tick {
+    stroke: #c0c0c0;
+}
+*/
+
+/* Example for numbers if they had class="hour-number" */
+/*
+body.dark-mode .hour-number {
+    fill: #e0e0e0;
+}
+*/
+
+/*
+  For elements with IDs like the hands, CSS can target them.
+  However, if JS is setting 'stroke' directly, JS must also update it for dark mode.
+  The current clock.js sets hand colors directly, so it will need to be updated.
+  These CSS rules act as a fallback or guide if JS didn't override.
+*/
+body.dark-mode #hour-hand {
+    stroke: #d0d0d0; /* Light grey for hour hand in dark mode */
+}
+body.dark-mode #minute-hand {
+    stroke: #d0d0d0; /* Light grey for minute hand in dark mode */
+}
+body.dark-mode #second-hand {
+    stroke: #ff7f7f; /* Lighter red for second hand in dark mode */
+}
+
+/* Example for central cap if it had an ID or class and was styled with CSS */
+/*
+body.dark-mode #central-cap-id { // or .central-cap-class
+    fill: #d0d0d0;
+}
+*/
