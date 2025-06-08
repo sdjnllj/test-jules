@@ -1,16 +1,9 @@
-// JavaScript for the SVG Clock
-
-const clock = document.getElementById('clock');
+// Global Constants and State Variables
 const svgNS = "http://www.w3.org/2000/svg";
-const toggleButton = document.getElementById('darkModeToggle');
-const body = document.body;
-
-// Define clock dimensions globally
 const centerX = 200;
 const centerY = 200;
 const radius = 180;
 
-// Define color palettes
 const themes = {
     light: {
         faceColor: '#f0f0f0',
@@ -21,7 +14,6 @@ const themes = {
         minuteHandColor: 'black',
         secondHandColor: 'red',
         capColor: 'black',
-        // CSS handles body/button colors via .dark-mode class
     },
     dark: {
         faceColor: '#404040',
@@ -30,35 +22,44 @@ const themes = {
         hourNumberColor: '#e0e0e0',
         hourHandColor: '#d0d0d0',
         minuteHandColor: '#d0d0d0',
-        secondHandColor: '#ff6666', // Lighter red for visibility
+        secondHandColor: '#ff6666',
         capColor: '#d0d0d0',
     }
 };
 
-let isDarkMode = false; // Default to light mode
-
-// Hand styles are now dynamic based on theme, store only structure here
 const handStructure = {
     hour: { lengthRatio: 0.5, width: 8, id: 'hour-hand' },
     minute: { lengthRatio: 0.75, width: 5, id: 'minute-hand' },
     second: { lengthRatio: 0.9, width: 2, id: 'second-hand' }
 };
 
+let isDarkMode = false;
+
+// DOM Element Variables - to be assigned once DOM is loaded
+let clock;
+let toggleButton;
+let body;
+
+// Function Definitions (can remain global as they are called after DOM load)
+
 function applyThemeColors() {
     const currentTheme = isDarkMode ? themes.dark : themes.light;
-    body.classList.toggle('dark-mode', isDarkMode);
+    if (body) body.classList.toggle('dark-mode', isDarkMode);
 
-    const clockFace = document.getElementById('clock-face-circle');
+    const clockFace = document.getElementById('clock-face-circle'); // ID is static, can be queried
     if (clockFace) {
         clockFace.setAttribute('fill', currentTheme.faceColor);
         clockFace.setAttribute('stroke', currentTheme.borderColor);
     }
 
-    const ticks = clock.querySelectorAll('.tick');
-    ticks.forEach(tick => tick.setAttribute('stroke', currentTheme.tickColor));
+    // clock needs to be defined for querySelectorAll
+    if (clock) {
+        const ticks = clock.querySelectorAll('.tick');
+        ticks.forEach(tick => tick.setAttribute('stroke', currentTheme.tickColor));
 
-    const hourNumbers = clock.querySelectorAll('.hour-number');
-    hourNumbers.forEach(num => num.setAttribute('fill', currentTheme.hourNumberColor));
+        const hourNumbers = clock.querySelectorAll('.hour-number');
+        hourNumbers.forEach(num => num.setAttribute('fill', currentTheme.hourNumberColor));
+    }
 
     const hourHand = document.getElementById(handStructure.hour.id);
     if (hourHand) hourHand.setAttribute('stroke', currentTheme.hourHandColor);
@@ -76,8 +77,11 @@ function applyThemeColors() {
 function drawClockFace() {
     const currentTheme = isDarkMode ? themes.dark : themes.light;
 
+    // Ensure clock element is available
+    if (!clock) return;
+
     const circle = document.createElementNS(svgNS, 'circle');
-    circle.setAttribute('id', 'clock-face-circle'); // ID for main circle
+    circle.setAttribute('id', 'clock-face-circle');
     circle.setAttribute('cx', centerX);
     circle.setAttribute('cy', centerY);
     circle.setAttribute('r', radius);
@@ -98,7 +102,7 @@ function drawClockFace() {
         const y2 = centerY + radius * Math.sin(angle * Math.PI / 180);
 
         const tick = document.createElementNS(svgNS, 'line');
-        tick.setAttribute('class', 'tick'); // Class for all ticks
+        tick.setAttribute('class', 'tick');
         tick.setAttribute('x1', x1);
         tick.setAttribute('y1', y1);
         tick.setAttribute('x2', x2);
@@ -114,7 +118,7 @@ function drawClockFace() {
             const numY = centerY + numRadius * Math.sin(angle * Math.PI / 180);
 
             const text = document.createElementNS(svgNS, 'text');
-            text.setAttribute('class', 'hour-number'); // Class for hour numbers
+            text.setAttribute('class', 'hour-number');
             text.setAttribute('x', numX);
             text.setAttribute('y', numY);
             text.setAttribute('fill', currentTheme.hourNumberColor);
@@ -128,14 +132,15 @@ function drawClockFace() {
     }
 }
 
-function drawHand(cx, cy, length, style, color) { // Added color parameter
+function drawHand(cx, cy, length, style, color) {
+    if (!clock) return; // Ensure clock element is available
     const hand = document.createElementNS(svgNS, 'line');
     hand.setAttribute('id', style.id);
     hand.setAttribute('x1', cx);
     hand.setAttribute('y1', cy);
     hand.setAttribute('x2', cx);
     hand.setAttribute('y2', cy - length);
-    hand.setAttribute('stroke', color); // Use themed color
+    hand.setAttribute('stroke', color);
     hand.setAttribute('stroke-width', style.width);
     hand.setAttribute('stroke-linecap', 'round');
     clock.appendChild(hand);
@@ -158,6 +163,7 @@ function drawSecondHand(cx, cy, r, color) {
 }
 
 function drawHands() {
+    if (!clock) return; // Ensure clock element is available
     const currentTheme = isDarkMode ? themes.dark : themes.light;
 
     drawHourHand(centerX, centerY, radius, currentTheme.hourHandColor);
@@ -165,17 +171,18 @@ function drawHands() {
     drawSecondHand(centerX, centerY, radius, currentTheme.secondHandColor);
 
     const centralCap = document.createElementNS(svgNS, 'circle');
-    centralCap.setAttribute('id', 'central-cap'); // ID for central cap
+    centralCap.setAttribute('id', 'central-cap');
     centralCap.setAttribute('cx', centerX);
     centralCap.setAttribute('cy', centerY);
     centralCap.setAttribute('r', '5');
     centralCap.setAttribute('fill', currentTheme.capColor);
-    centralCap.setAttribute('stroke', isDarkMode ? themes.dark.borderColor : themes.light.borderColor); // Match border color
+    centralCap.setAttribute('stroke', isDarkMode ? themes.dark.borderColor : themes.light.borderColor);
     centralCap.setAttribute('stroke-width', '1');
     clock.appendChild(centralCap);
 }
 
 function updateClock() {
+    // This function primarily updates transforms, not styles, so less direct dependency on `clock` for styling
     const now = new Date();
     const seconds = now.getSeconds();
     const minutes = now.getMinutes();
@@ -194,44 +201,54 @@ function updateClock() {
     if (secondHandEl) secondHandEl.setAttribute('transform', `rotate(${secondAngle}, ${centerX}, ${centerY})`);
 }
 
-// Event Listener for Toggle Button
-if (toggleButton) {
-    toggleButton.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-        applyThemeColors(); // Apply immediately, also redraws if needed by re-calling draw functions
-                            // Current applyThemeColors directly updates attributes, which is more efficient.
-    });
-}
-
-// Initial Theme Load
 function loadTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         isDarkMode = true;
     } else {
-        isDarkMode = false; // Default to light, or if localStorage is null/invalid
+        isDarkMode = false;
     }
-    // No need to call applyThemeColors() here, as drawing functions will use isDarkMode.
-    // However, body class needs to be set.
-    body.classList.toggle('dark-mode', isDarkMode);
+    // Body class must be set here, after body element is found.
+    if (body) body.classList.toggle('dark-mode', isDarkMode);
 }
 
+// Main script execution starts after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Assign DOM elements now that they are available
+    clock = document.getElementById('clock');
+    toggleButton = document.getElementById('darkModeToggle');
+    body = document.body; // document.body is generally available earlier, but good practice for consistency
 
-// Main execution flow
-if (clock) {
-    loadTheme(); // 1. Load theme preference (sets isDarkMode and body class)
-                // applyThemeColors() will be implicitly called by draw functions using currentTheme
+    if (!body) {
+        console.error("Body element not found. Critical error.");
+        return;
+    }
 
-    drawClockFace(); // 2. Draws face using loaded theme
-    drawHands();     // 3. Draws hands using loaded theme
+    // Event Listener for Toggle Button
+    if (toggleButton) {
+        toggleButton.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            applyThemeColors(); // This function uses `body` and `clock` which are now assigned.
+        });
+    } else {
+        console.warn("Dark mode toggle button not found.");
+    }
 
-    // Initial call to set hand positions and apply colors explicitly after drawing
-    applyThemeColors(); // This ensures all elements are correctly styled after initial draw using loaded theme.
-                        // It's a bit redundant if draw functions already use themes but ensures consistency.
+    // Main execution flow for clock
+    if (clock) {
+        loadTheme(); // Sets isDarkMode and applies body class. Needs `body`.
 
-    updateClock();   // 4. Set initial hand positions
-    setInterval(updateClock, 1000); // 5. Start clock updates
-} else {
-    console.error("SVG element with id 'clock' not found.");
-}
+        drawClockFace(); // Needs `clock`, `isDarkMode`, `themes`.
+        drawHands();     // Needs `clock`, `isDarkMode`, `themes`.
+
+        // applyThemeColors() ensures all elements are correctly styled initially.
+        // This is important if drawing functions didn't perfectly cover all cases or for elements not redrawn.
+        applyThemeColors();
+
+        updateClock();   // Sets initial hand positions.
+        setInterval(updateClock, 1000); // Starts clock updates.
+    } else {
+        console.error("SVG element with id 'clock' not found. Clock cannot start.");
+    }
+});
